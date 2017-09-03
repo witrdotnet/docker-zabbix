@@ -1,0 +1,42 @@
+version: '2'
+
+services:
+
+  zabbix-mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+    networks:
+      - zabbix
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql
+    environment:
+      DB_SERVER_HOST: "zabbix-mysql" 
+      MYSQL_USER: "root" 
+      MYSQL_PASSWORD: "password"
+    networks:
+      - zabbix
+    depends_on:
+      - zabbix-mysql
+
+  zabbix-web:
+    image: zabbix/zabbix-web-apache-mysql
+    ports:
+      - "8000:80"
+    environment:
+      DB_SERVER_HOST: "zabbix-mysql"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "password"
+      ZBX_SERVER_HOST: "zabbix-server"
+      TZ: "Europe/Paris"
+    networks:
+      - zabbix
+    depends_on:
+      - zabbix-mysql
+      - zabbix-server
+
+networks:
+
+  zabbix:
+    driver: bridge
